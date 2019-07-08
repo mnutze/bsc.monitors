@@ -31,6 +31,6 @@ self.addEventListener("message", function (event) {
 
     data = data.slice(0, 50);
 
-    self.postMessage({ aggregated: data, filterAbility: true });
+    self.postMessage({ aggregated: data, filterAbility: true, filter: filter });
 
 }, false);
