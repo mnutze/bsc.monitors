@@ -246,7 +246,7 @@
             };
 
             // kill process worker
-            this.terminateWorker = () => self.worker.terminate();
+            this.terminateWorker = async () => await self.worker.terminate();
 
             this.update = async (dataset, source, flag) => await update(dataset, self.sources[source], flag);
 
