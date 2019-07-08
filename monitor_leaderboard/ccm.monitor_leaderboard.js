@@ -17,7 +17,7 @@
 
         name: "monitor_leaderboard",
 
-        ccm: "https://ccmjs.github.io/ccm/ccm.js",
+        ccm: "https://ccmjs.github.io/ccm/versions/ccm-21.1.2.js",
 
         config: {
 
