@@ -1,13 +1,21 @@
 /**
- * @overview ccm latest activities monitor
+ * @overview ccm time series monitor -> returns a time series about subject(learners/teams) activities by chosen time-range or days and hours
  * @author Michael Nutzenberger <michael.nutzenberger@smail.inf.h-brs.de> 2019
- * @license The MIT License (MIT)
+ * @license
+ * Creative Commons Attribution-NonCommercial 3.0: https://creativecommons.org/licenses/by-nc/3.0/
+ * Only for not-for-profit educational use.
+ *
+ * This ccm component uses „Highstock JS“: https://www.highcharts.com
+ * Make sure that you have a valid license of „Highstock JS“ before using this ccm component.
+ *
+ * The developer Michael Nutzenberger of this component has a valid license of „Highstock JS“ for
+ * Personal/Student Use|Not-for-Profit Educational Institution use for the following product(s): Highcharts, Highstock
  * @version latest (1.0.0)
  */
 ( function () {
     const component = {
 
-        name: "monitor_latest_activities",
+        name: "monitor_time_series",
 
         ccm: "https://ccmjs.github.io/ccm/ccm.js",
 
@@ -15,7 +23,8 @@
 
             css: {
                 default: [ "ccm.load", [
-                    { url: "https://mnutze.github.io/bsc.monitors/resources/monitor.css" }
+                    { url: "https://mnutze.github.io/bsc.monitors/resources/monitor.css" },
+                    { url: "https://mnutze.github.io/bsc.monitors/resources/cm-highcharts.css" }
                 ] ],
                 extern: [ "ccm.load", [
                     { url: "https://mnutze.github.io/bsc.course-monitoring/libs/css/delos.css" },
@@ -58,7 +67,7 @@
                 logged_in: true
             } ],
 
-            worker: "https://mnutze.github.io/bsc.monitors/monitor_latest_activities/resources/worker.js"
+            worker: "https://mnutze.github.io/bsc.monitors/monitor_time_series/resources/worker.js"
         },
 
         Instance: function () {
@@ -92,6 +101,15 @@
                     self.worker = createWorkerFallback(self.worker);
                 }
 
+                // make sure that "highcharts.js" library is executed only once
+                !window.Highcharts && await self.ccm.load( this.ccm.components[ component.index ].lib || "https://cdnjs.cloudflare.com/ajax/libs/highcharts/7.1.2/highcharts.js" );
+                await self.ccm.load( "https://cdnjs.cloudflare.com/ajax/libs/highcharts/7.1.2/modules/exporting.js" );
+                await self.ccm.load( "https://cdnjs.cloudflare.com/ajax/libs/highcharts/7.1.2/modules/data.js" );
+                await self.ccm.load( "https://cdnjs.cloudflare.com/ajax/libs/highcharts/7.1.2/modules/drilldown.js" );
+                await self.ccm.load( "https://cdnjs.cloudflare.com/ajax/libs/highcharts/7.1.2/highcharts-more.js" );
+                await self.ccm.load( "https://cdnjs.cloudflare.com/ajax/libs/highcharts/7.1.2/modules/networkgraph.js" );
+                await self.ccm.load( "https://cdnjs.cloudflare.com/ajax/libs/highcharts/7.1.2/modules/heatmap.js" );
+
                 // load jsonLogic only once
                 !window.jsonLogic && await self.ccm.load("https://mnutze.github.io/bsc.course-monitoring/libs/js/logic.js");
 
@@ -104,6 +122,10 @@
 
                 // load cmMonitorHelper only once
                 !window.cmMonitorHelper && await self.ccm.load("https://mnutze.github.io/bsc.monitors/libs/cmMonitorHelper.js");
+
+                // set Highcharts options
+                Highcharts.dateFormats = { W: timestamp => moment(timestamp).isoWeek() };
+                Highcharts.setOptions( { time: { timezone: 'Europe/Berlin' } } );
 
                 // extend jsonLogic-Filter by custom
                 function range (start, end) { return (new Date(this.created_at) > start && new Date(this.created_at) < end); }
@@ -233,16 +255,6 @@
                         subject: self.subject ? self.subject : undefined,
                         teams: self.teams ? self.teams : undefined
                     });
-                else {
-                    if (self.process)
-                        data = self.process(data, self);
-
-                    if (self["no-rlt"] && !rerender)
-                        return;
-
-                    if (data)
-                        render(data);
-                }
             };
 
             // kill process worker
@@ -317,228 +329,187 @@
                         subject: self.subject ? self.subject : undefined,
                         teams: self.teams ? self.teams : undefined
                     });
-                else {
-                    if (self.process)
-                        data = self.process(data, self);
-
-                    if (self["no-rlt"] && !rerender)
-                        return;
-
-                    if (data)
-                        render(data);
-                }
             }
 
-            function render(data) {
-                if (!data)
+            async function render(data) {
+                if (self["no-rlt"] && !rerender)
                     return;
 
-                if (data.filter)
-                    self.filter = data.filter;
+                let buttonsSettings = {
+                    x: [76, 20],
+                    y: [0, 0],
+                    theme: {
+                        "stroke-width": 1,
+                        stroke: "#dadade",
+                        r: 0,
+                        padding: 5,
+                        height: 12,
+                        "font-size": "10px"
+                    },
+                }, intervalButton = {}, rangeButton = {};
 
-                function setCell (dataset, key, link) {
-                    if (!Array.isArray($.deepValue(dataset, key))) {
-                        if (link === "subject")
-                            return {
-                                tag: "a",
-                                id: $.deepValue(dataset, key),
-                                inner: self.course ?
-                                    self.course.humanReadable.learners[$.deepValue(dataset, key)] ?
-                                        self.course.humanReadable.learners[$.deepValue(dataset, key)] :
-                                        $.deepValue(dataset, key) : $.deepValue(dataset, key),
-                                onclick: function (event) {
-                                    if (self.parent && self.parent.createBoardPanel)
-                                        self.parent.createBoardPanel(dataset.key, self.subject, !!self.teams);
-                                }
-                        };
-                        if (link === "learner")
-                            return self.course ? self.course.humanReadable.learners[$.deepValue(dataset, key)] ?
-                                self.course.humanReadable.learners[$.deepValue(dataset, key)] :
-                                $.deepValue(dataset, key) : $.deepValue(dataset, key);
-                        if (key === "created_at" || key === "updated_at")
-                            return $.deepValue(dataset, key).replace("T", " ").slice(0,19);
-                        if (key.indexOf(",") > 1)
-                            return $.deepValue(dataset, key.split(",")[0]) ?
-                                $.deepValue(dataset, key.split(",")[0]) : $.deepValue(dataset, key.split(",")[1]);
-                        return $.deepValue(dataset, key);
-                    }
-                    else if (Array.isArray($.deepValue(dataset, key)) && key.indexOf("profile") !== -1 ) {
-                        let width = 100,
-                            height = 30;
-                        const div = document.createElement( 'div' );
-                        let svg = d3.select(div).append("svg")
-                            .attr("width", width)
-                            .attr("height", height);
-
-                        svg.append("g").classed("line", true);
-
-                        let x = data.x;
-                        x.rangeRound([0, width]);
-
-                        let y = d3.scaleLinear()
-                            .domain([0, 1.05*d3.max($.deepValue(dataset, key), el => el.length)])
-                            .range([height, 0]);
-                        let line = d3.line().x(d => x(d.x1)).y(d => y(d.length));
-
-                        // Add the valueline path.
-                        svg.select(".line")
-                            .append("path") // mean-line
-                            .data([$.deepValue(dataset, key)])
-                            .attr("class", "line")
-                            .attr("style", "fill: none; stroke-width: 1px;")
-                            .attr("stroke", cmMonitorHelper.colors[0])
-                            .attr("d", line);
-
-                        return div;
-                    }
-                }
-
-                let columns = self.render.columns;
-
-                let rows = Object.values(data.aggregated).reduce((prev, subject) => {
-                    prev = prev.concat(
-                        { tag: "tr", inner: columns.order.map(td => $.format(self.templates.tables.td, {
-                                tdInner: function () {
-                                    if (!columns[td].filter)
-                                        return [
-                                            {
-                                            tag: "span",
-                                            class: "cm_table_cell",
-                                            inner: setCell(subject, columns[td].key, td)
-                                        }];
-                                    let value, __path = columns[td].key;
-                                    if (columns[td].key.indexOf(",") > 1) {
-                                        if ($.deepValue(subject, columns[td].key.split(",")[0])) {
-                                            value = $.deepValue(subject, columns[td].key.split(",")[0]);
-                                            __path = columns[td].key.split(",")[0];
-                                        } else {
-                                            value = $.deepValue(subject, columns[td].key.split(",")[1]);
-                                            __path = columns[td].key.split(",")[1]
-                                        }
-                                    }
-                                    else
-                                        value = $.deepValue(subject, columns[td].key);
-                                    return [
-                                        {
-                                            tag: "span",
-                                            class: "cm_table_cell",
-                                            inner: setCell(subject, columns[td].key, td)
-                                        },
-                                        {
-                                            tag: "span",
-                                            class: "cm_table_cell_filter",
-                                            inner: [
-                                                {
-                                                    tag: "span",
-                                                    class: "glyphicon glyphicon-zoom-in",
-                                                    onclick: () => config().filter.add(__path, value, true, columns[td].label)
-                                                },
-                                                {
-                                                    tag: "span",
-                                                    class: "glyphicon glyphicon-zoom-out",
-                                                    onclick: () => config().filter.add(__path, value, false, columns[td].label)
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                } ()
-                            }))},
-                    );
-                    return prev;
-                }, [] ) ;
-
-                let table = $.html(self.templates.tables.table, {
-                    width: self.size.width - 30,
-                    height: self.size.height - 60,
-                    thead: columns.order.map(th => ( {
-                        tag: "th",
-                        style: "position: sticky; top: 0; z-index: 10;",
-                        inner: "<span>" + columns[th].label + "</span><span class='glyphicon glyphicon-sort-by-attributes-alt ilDclSelectRecord cm-small'></span>"
-                    } ) ),
-                    tbody: rows
-                });
-                $.setContent( self.element.querySelector( "#main" ), table );
-
-                /**@THX to Nick Grealy (https://stackoverflow.com/users/782034/nick-grealy)
-                 * by contributing his table sort algorithm
-                 * https://stackoverflow.com/questions/14267781/sorting-html-table-with-javascript?answertab=votes#tab-top
-                 */
-                const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
-
-                const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
-                    v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
-                    )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
-
-                // do the work...
-                self.element.querySelectorAll('th').forEach(th => th.addEventListener('click', function (event) {
-                    this.parentNode.querySelectorAll(".glyphicon")
-                        .forEach(sortIcon => sortIcon.classList.remove("text-info"));
-                    let icon = this.querySelector(".glyphicon");
-                    if (icon.classList.contains("glyphicon-sort-by-attributes")) {
-                        icon.classList.remove("glyphicon-sort-by-attributes");
-                        icon.classList.add("glyphicon-sort-by-attributes-alt");
-                    }
-                    else {
-                        icon.classList.remove("glyphicon-sort-by-attributes-alt");
-                        icon.classList.add("glyphicon-sort-by-attributes");
-                    }
-                    icon.classList.add("text-info");
-                    const table = th.closest('table');
-                    const tbody = table.querySelector("tbody");
-                    Array.from(tbody.querySelectorAll('tr:nth-child(n+1)'))
-                        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
-                        .forEach(tr => tbody.appendChild(tr) );
-                }));
-            }
-
-            function config() {
-                return {
-                    filter: {
-                        add: (path, value, boolean, label) => {
-                            if(!self.filter)
-                                self.filter = { and: [ ] };
-
-                            let filter;
-                            if (boolean)
-                                filter = { "===" : [ { var : path }, value ] };
-                            else
-                                filter = { "!==" : [ { var : path }, value ] };
-                            self.filter.and.push(filter);
-
-                            if (!self.filterGUI)
-                                self.filterGUI = [{label: label, filter: filter}];
-                            else
-                                self.filterGUI.push({label: label, filter: filter});
-
-                            config().filter.render();
-                        },
-                        remove: filter => {
-                            self.filter.and = self.filter.and.filter(arr => JSON.stringify(arr) !== JSON.stringify(filter.filter));
-                            self.filterGUI = self.filterGUI.filter(arr => JSON.stringify(arr) !== JSON.stringify(filter));
-                            config().filter.render();
-                        },
-                        render: () => {
-                            let boolean = {
-                                "===": true,
-                                "!==": false
-                            };
-                            let content = [ ];
-
-                            self.filterGUI.forEach(filter => {
-                                content.push($.format({
-                                    tag: "span",
-                                    class: boolean[Object.keys(filter.filter)[0]] ? "btn-default badge" : "btn-danger badge",
-                                    style: "position: unset; margin-left: 7px",
-                                    inner: filter.label + ": " +  Object.values(filter.filter)[0][1] ,
-                                    onclick: "%click%"
-                                }, { click: ev => config().filter.remove(filter)}));
-                            });
-
-                            $.setContent( navContainer.filter.querySelector("#monitorFilterList"), $.html(content));
-
-                            self.rerender();
+                if (self.interval && self.interval.enabled)
+                    intervalButton = {
+                        "exporting.buttons.interval" : {
+                            align: 'left',
+                            x: buttonsSettings.x.pop(),
+                            y: buttonsSettings.y.pop(),
+                            theme: buttonsSettings.theme,
+                            text: "Interval",
+                            menuItems: function () {
+                                let bc = [];
+                                cmMonitorHelper.time.interval.forEach((value, key) => {
+                                    if (!self.interval.exclude.includes(key))
+                                        bc.push({
+                                            text: key,
+                                            theme: {"font-size": "8px"},
+                                            onclick: (ev) => {
+                                                self.interval.current = key;
+                                                self.rerender();
+                                            }});
+                                });
+                                return bc;
+                            }()
                         }
-                    }
+                    };
+
+                if (self.range && self.range.enabled)
+                    rangeButton = {
+                        "exporting.buttons.range": {
+                            align: 'left',
+                            height: 14,
+                            x: buttonsSettings.x.pop(),
+                            y: buttonsSettings.y.pop(),
+                            className: "cm-hc-custom-range",
+                            theme: buttonsSettings.theme,
+                            text: self.range.range === "lessons" && self.course && self.course.lessons ? "Unit" : "Time-Range",
+                            menuItems: function () {
+                                // Calendar weeks
+                                if (self.range.range === "weeks") {
+                                    if (data.rangeValues)
+                                        self.range.values = data.rangeValues;
+                                    return self.range.values.map(range => ({
+                                        text: "W-" + moment(range.x0).isoWeek(),
+                                        theme: {"font-size": "8px"},
+                                        onclick: (ev) => {
+                                            self.range.current = [range.x0, range.x1];
+                                            self.rerender()
+                                        }
+                                    }));
+                                }
+                                if (self.range.range === "lessons" && self.course && self.course.lessons) {
+                                    return Object.keys(self.course.lessons).map((lesson, id) => ({
+                                        text: "" + (id+1),
+                                        theme: { "font-size": "8px" },
+                                        onclick: (ev) => {
+                                            self.range.current = { [lesson]: self.course.lessons[lesson] };
+                                            self.rerender()
+                                        }
+                                    }));
+                                }
+
+                                let ranges = [];
+                                cmMonitorHelper.time.range.forEach((value, key) => {
+                                    ranges.push({
+                                        text: key,
+                                        theme: {"font-size": "8px"},
+                                        onclick: (ev) => {
+                                            //self.monitor.filter = self.monitor.filter.concat([value(new Date)]);
+                                            self.range.range = key;
+                                            self.rerender();
+                                        }
+                                    });
+                                });
+                                return ranges;
+                            }()
+                        }
+                    };
+
+                let settings = {
+                    chart: {
+                        styledMode: false,
+                        zoomType: 'x',
+                        backgroundColor: "#ffffff",
+                        width: self.size.width - 50,
+                        height: self.size.height - 50,
+                        marginTop: 50,
+                        resetZoomButton:{
+                            position:{
+                                x:-10,
+                                y: -40,
+                            },
+                            theme: {
+                                'stroke-width': 1,
+                                stroke: "#dadade",
+                                r: 0,
+                                padding: 5,
+                                height: 12,
+                                "font-size": "10px",
+                                "zIndex": 6
+                            }
+                        }
+                    },
+                    colors: cmMonitorHelper.colors,
+                    credits: { enabled: false },
+                    "exporting.buttons.contextButton.enabled": false,
+                    legend: {
+                        enabled: false,
+                        align: 'right',
+                        verticalAlign: 'top',
+                        borderWidth: 0,
+                        symbolHeight: 0,
+                        symbolPadding: 0,
+                        symbolRadius: 0,
+                        x: -25
+                    },
+                    navigator: { enabled: false, },
+                    plotOptions: { series: { states: { inactive: { opacity: 1 } } } },
+                    rangeSelector: { enabled: false },
+                    responsive: {
+                        rules: [{
+                            condition: { maxWidth: 500 },
+                            chartOptions: {
+                                legend: {
+                                    align: 'center',
+                                    verticalAlign: 'bottom',
+                                    layout: 'horizontal'
+                                },
+                                xAxis: { "labels.step": 5 },
+                                credits: { enabled: false }
+                            }
+                        }]
+                    },
+                    scrollbar: { enabled: false, },
+                    title: { text: "" },
+                    "tooltip.valueDecimals": 2,
+                    xAxis: { maxPadding: 0.02 },
+                };
+
+                settings = $.convertObjectKeys(Object.assign(settings, intervalButton, rangeButton));
+
+                settings = $.convertObjectKeys(Object.assign(settings, data));
+
+                if ($.isObject(self.render.highcharts))
+                    settings = $.convertObjectKeys(Object.assign(settings, self.render.highcharts));
+
+                //if (!self.interval && !self.range)
+                //    settings.chart.marginTop = 20;
+
+                //console.log(settings); // @TODO remove debug print before live
+                if (!self.visualization) {
+                    rerender = false;
+                    const div = document.createElement( 'div' );
+                    self.visualization = Highcharts.chart(div, settings);
+                    $.setContent( self.element.querySelector( "#main" ), div );
+                } else if (rerender) {
+                    rerender = false;
+                    const div = document.createElement( 'div' );
+                    self.visualization = Highcharts.chart(div, settings);
+                    $.setContent( self.element.querySelector( "#main" ), div );
+                }
+                else {
+                    self.visualization.series.forEach((series, i) => series ?
+                        series.setData(data.series[i].data): null);
                 }
             }
 
