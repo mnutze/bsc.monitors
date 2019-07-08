@@ -57,6 +57,8 @@
                 realm: "hbrsinfpseudo",
                 logged_in: true
             } ],
+
+            worker: "https://mnutze.github.io/bsc.monitors/monitor_latest_activities/resources/worker.js"
         },
 
         Instance: function () {
@@ -67,29 +69,28 @@
             this.init = async () => {
 
                 // creates process worker
-                if (self.worker)
-                    try {
-                        let workerUrl = self.worker;
-                        if (testSameOrigin(workerUrl)) {
-                            self.worker = new Worker(workerUrl);
-                            self.worker.onerror = function (event) {
-                                event.preventDefault();
-                                self.worker = createWorkerFallback(workerUrl);
-                            };
-                        } else {
+                try {
+                    let workerUrl = self.worker;
+                    if (testSameOrigin(workerUrl)) {
+                        self.worker = new Worker(workerUrl);
+                        self.worker.onerror = function (event) {
+                            event.preventDefault();
                             self.worker = createWorkerFallback(workerUrl);
-                        }
-                        self.worker.addEventListener('message', function(event) {
-                            let data = event.data;
-                            if (self["no-rlt"] && !rerender)
-                                return;
-
-                            if (data)
-                                render()(data);
-                        }, false);
-                    } catch (e) {
-                        self.worker = createWorkerFallback(self.worker);
+                        };
+                    } else {
+                        self.worker = createWorkerFallback(workerUrl);
                     }
+                    self.worker.addEventListener('message', function(event) {
+                        let data = event.data;
+                        if (self["no-rlt"] && !rerender)
+                            return;
+
+                        if (data)
+                            render(data);
+                    }, false);
+                } catch (e) {
+                    self.worker = createWorkerFallback(self.worker);
+                }
 
                 // load jsonLogic only once
                 !window.jsonLogic && await self.ccm.load("https://mnutze.github.io/bsc.course-monitoring/libs/js/logic.js");
