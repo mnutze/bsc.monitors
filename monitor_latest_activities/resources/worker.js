@@ -15,7 +15,7 @@ self.addEventListener("message", function (event) {
 
     let subjectFilter;
     if (subject && subject.values && subject.values.length > 0)
-        subjectFilter = [{ "or": subject.values.map(subject => ({ "===" : [ { var : subject.key }, subject ] }) ) }];
+        subjectFilter = [{ "or": subject.values.map(_subject => ({ "===" : [ { var : subject.key }, _subject ] }) ) }];
 
     if (subjectFilter)
         subjectFilter.forEach(_filter => {
