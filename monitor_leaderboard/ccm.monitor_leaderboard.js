@@ -255,16 +255,6 @@
                         subject: self.subject ? self.subject : undefined,
                         teams: self.teams ? self.teams : undefined
                     });
-                else {
-                    if (self.process)
-                        data = self.process(data, self);
-
-                    if (self["no-rlt"] && !rerender)
-                        return;
-
-                    if (data)
-                        render(data);
-                }
             };
 
             // kill process worker
@@ -273,14 +263,12 @@
             this.update = async (dataset, source, flag) => await update(dataset, self.sources[source], flag);
 
             async function update (dataset, source, flag) {
-                //console.log(dataset, source);
                 if (dataset && $.isObject(dataset)) {
                     if ($.isObject(source))
                         dataset = self.helper.filterData([dataset], source.filter)[0];
                     else
                         dataset = self.helper.filterData([dataset])[0];
 
-                    //console.log(self.widget, dataset);
                     if (!dataset)
                         return;
 
@@ -306,7 +294,6 @@
                         self.data[source.name].push(dataset);
                 }
                 else if (Array.isArray(dataset) && !flag) {
-                    //console.log(self.widget, dataset);
                     self.data[source.name] = self.data[source.name].concat(self.helper.filterData(dataset, source.filter));
                     if (self.teams) // extend log entries with a property team and the user corresponding team-value
                         self.data[source.name] = self.helper.setTeamId(self.data[source.name]);
@@ -317,8 +304,6 @@
                 }
 
                 let data = self.data;
-
-                //console.debug("processing " + debug().sizeOf(data) + " bytes");
 
                 if (self.worker)
                     self.worker.postMessage({
@@ -339,16 +324,6 @@
                         subject: self.subject ? self.subject : undefined,
                         teams: self.teams ? self.teams : undefined
                     });
-                else {
-                    if (self.process)
-                        data = self.process(data, self);
-
-                    if (self["no-rlt"] && !rerender)
-                        return;
-
-                    if (data)
-                        render(data);
-                }
             }
 
             async function render(data) {
@@ -512,10 +487,6 @@
                 if ($.isObject(self.render.highcharts))
                     settings = $.convertObjectKeys(Object.assign(settings, self.render.highcharts));
 
-                //if (!self.interval && !self.range)
-                //    settings.chart.marginTop = 20;
-
-                //console.log(settings); // @TODO remove debug print before live
                 if (!self.visualization) {
                     rerender = false;
                     const div = document.createElement( 'div' );
