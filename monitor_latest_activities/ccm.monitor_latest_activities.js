@@ -334,7 +334,7 @@
                     return;
 
                 if (data.filter)
-                    self.filter = filter;
+                    self.filter = data.filter;
 
                 function setCell (dataset, key, link) {
                     if (!Array.isArray($.deepValue(dataset, key))) {
