@@ -16,7 +16,7 @@ self.addEventListener("message", function (event) {
     let subjectFilter;
     if (subject && subject.values && subject.values.length > 0)
         subjectFilter = [{ "or": subject.values.map(subject => ({ "===" : [ { var : subject.key }, subject ] }) ) }];
-
+console.log(subject, data, filter)
     if (subjectFilter)
         subjectFilter.forEach(filter => {
             if (!filter.and.includes(filter))
