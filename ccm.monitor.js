@@ -27,9 +27,9 @@
                     { url: "https://mnutze.github.io/bsc.monitor/resources/cm-highcharts.css" }
                 ] ],
                 extern: [ "ccm.load", [
-                    { url: "https://mnutze.github.io/bsc.monitoring-courses/libs/css/delos.css" },
-                    { url: "https://mnutze.github.io/bsc.monitoring-courses/libs/css/delos_cont.css" },
-                    { url: "https://mnutze.github.io/bsc.monitoring-courses/libs/css/fonts.css" },
+                    { url: "https://mnutze.github.io/bsc.course-monitoring/libs/css/delos.css" },
+                    { url: "https://mnutze.github.io/bsc.course-monitoring/libs/css/delos_cont.css" },
+                    { url: "https://mnutze.github.io/bsc.course-monitoring/libs/css/fonts.css" },
 
                 ] ]
             },
@@ -110,7 +110,7 @@
                 await self.ccm.load( "https://cdnjs.cloudflare.com/ajax/libs/highcharts/7.1.2/modules/heatmap.js" );
 
                 // load jsonLogic only once
-                !window.jsonLogic && await self.ccm.load("https://mnutze.github.io/bsc.monitoring-courses/libs/js/logic.js");
+                !window.jsonLogic && await self.ccm.load("https://mnutze.github.io/bsc.course-monitoring/libs/js/logic.js");
 
                 // make sure that "d3.js" library is executed only once
                 !window.d3 && await self.ccm.load( this.ccm.components[ component.index ].lib || "https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.2/d3.min.js" );
