@@ -1,5 +1,6 @@
 /**
- * @overview ccm template component
+ * @overview ccm monitor template -> runs stand-alone and as <ccm-course_monitoring> widget with shared data sources
+ * @info able for multiple data sources
  * @author Michael Nutzenberger <michael.nutzenberger@smail.inf.h-brs.de> 2019
  * @license
  * Creative Commons Attribution-NonCommercial 3.0: https://creativecommons.org/licenses/by-nc/3.0/
@@ -15,7 +16,7 @@
 ( function () {
     const component = {
 
-        name: "monitor",
+        name: "monitor_template",
 
         ccm: "https://ccmjs.github.io/ccm/ccm.js",
 
@@ -66,6 +67,9 @@
                 realm: "hbrsinfpseudo",
                 logged_in: true
             } ],
+
+            // path to worker script
+            // worker: "absolute/path/to/worker/script/worker.js
         },
 
         Instance: function () {
