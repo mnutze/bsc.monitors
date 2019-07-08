@@ -1,7 +1,7 @@
 importScripts("https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.2/d3.min.js");
-importScripts("https://mnutze.github.io/bsc.monitoring-courses/libs/js/logic.js");
+importScripts("https://mnutze.github.io/bsc.course-monitoring/libs/js/logic.js");
 importScripts("https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.js");
-importScripts("https://mnutze.github.io/bsc.monitor/assets/cmMonitorHelper.js");
+importScripts("https://mnutze.github.io/bsc.monitors/libs/cmMonitorHelper.js");
 
 self.addEventListener("message", function (event) {
 
