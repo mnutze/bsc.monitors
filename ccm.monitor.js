@@ -23,8 +23,8 @@
 
             css: {
                 default: [ "ccm.load", [
-                    { url: "https://mnutze.github.io/bsc.monitor/resources/monitor.css" },
-                    { url: "https://mnutze.github.io/bsc.monitor/resources/cm-highcharts.css" }
+                    { url: "https://mnutze.github.io/bsc.monitors/resources/monitor.css" },
+                    { url: "https://mnutze.github.io/bsc.monitors/resources/cm-highcharts.css" }
                 ] ],
                 extern: [ "ccm.load", [
                     { url: "https://mnutze.github.io/bsc.course-monitoring/libs/css/delos.css" },
@@ -60,7 +60,7 @@
                 // local: undefined, // level-2 store
             },
 
-            templates: [ "ccm.load", { url: "https://mnutze.github.io/bsc.monitor/resources/templates.js" } ],
+            templates: [ "ccm.load", { url: "https://mnutze.github.io/bsc.monitors/resources/templates.js" } ],
 
             user: [ "ccm.instance", "https://ccmjs.github.io/akless-components/user/versions/ccm.user-9.0.1.js", {
                 realm: "hbrsinfpseudo",
@@ -120,7 +120,7 @@
                 await self.ccm.load("https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.13/moment-timezone-with-data-2012-2022.min.js");
 
                 // load cmMonitorHelper only once
-                !window.cmMonitorHelper && await self.ccm.load("https://mnutze.github.io/bsc.monitor/assets/cmMonitorHelper.js");
+                !window.cmMonitorHelper && await self.ccm.load("https://mnutze.github.io/bsc.monitors/libs/cmMonitorHelper.js");
 
                 // set Highcharts options
                 Highcharts.dateFormats = { W: timestamp => moment(timestamp).isoWeek() };

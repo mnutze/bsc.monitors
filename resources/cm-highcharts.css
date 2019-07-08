@@ -1,0 +1,24 @@
+/* Highcharts custom styles */
+.cm-hc-custom-range rect {
+
+}
+.cm-hc-custom-range text {
+
+}
+.highcharts-menu-0 div.highcharts-menu, .highcharts-menu-1 div.highcharts-menu {
+	box-shadow: rgb(136, 136, 136) 3px 3px 10px !important;
+    border: 1px solid #dadade !important;
+    background: rgb(255, 255, 255) !important;
+    padding: 0 !important;
+    float: left !important;
+    border-radius: 0 !important;
+}
+.highcharts-menu-0 div.highcharts-menu-item, .highcharts-menu-1 div.highcharts-menu-item {
+	cursor: pointer;
+    padding: 0.5em 0.5em !important;
+    color: rgb(51, 51, 51);
+    background: none;
+    font-size: 10px !important;
+    transition: background 250ms ease 0s, color 250ms ease 0s;
+    float: left !important;
+}
