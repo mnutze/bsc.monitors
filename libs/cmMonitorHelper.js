@@ -115,7 +115,8 @@ http://ricostacruz.com/cheatsheets/umdjs.html
                 ["last 7d", now => [new Date(moment(now).subtract(1, "week")), now]],
                 ["last 14d", now => [new Date(moment(now).subtract(2, "week")), now]],
                 ["last month", now => [new Date(moment(now).subtract(1, "month")), now]],
-                ["last 2 month", now => [new Date(moment(now).subtract(2, "month")), now]]
+                ["last 2 month", now => [new Date(moment(now).subtract(2, "month")), now]],
+                ["last 6 month", now => [new Date(moment(now).subtract(6, "month")), now]]
             ])
         };
     
